@@ -1,5 +1,4 @@
-﻿using System.Collections.Immutable;
-using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Options;
 using Occtoo.Formatter.Commercetools.Models;
 using System.Net.Http.Headers;
 using System.Net.Http.Json;
@@ -16,7 +15,7 @@ public enum DataType
 
 public interface IOcctooApiService
 {
-    Task<IReadOnlyList<T>> FetchAllItems<T>(DataType dataType, DateTime? lastRunTime) where T : DestinationRootDto;
+    Task<IReadOnlyList<T>> FetchAllItems<T>(DataType dataType, DateTime? lastRunTime, string language = "en") where T : DestinationRootDto;
 }
 
 public class OcctooApiService : IOcctooApiService
@@ -58,12 +57,12 @@ public class OcctooApiService : IOcctooApiService
         }
     }
 
-    public async Task<IReadOnlyList<T>> FetchAllItems<T>(DataType dataType, DateTime? lastRunTime) where T : DestinationRootDto
+    public async Task<IReadOnlyList<T>> FetchAllItems<T>(DataType dataType, DateTime? lastRunTime, string language = "en") where T : DestinationRootDto
     {
         await SetToken();
 
         var allItems = new List<T>();
-        var baseQueryString = $"?top={_destinationSettings.BatchSize}&sortAsc=id&language=sv&periodSince={lastRunTime ?? default:o}";
+        var baseQueryString = $"?top={_destinationSettings.BatchSize}&sortAsc=id&language={language}&periodSince={lastRunTime ?? default:o}";
         var lastIdPrevBatch = string.Empty;
 
         while (true)

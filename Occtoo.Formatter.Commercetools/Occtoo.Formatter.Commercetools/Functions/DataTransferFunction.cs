@@ -8,7 +8,7 @@ using Microsoft.Extensions.Options;
 
 namespace Occtoo.Formatter.Commercetools.Functions;
 
-public record ManualDataTransferRequest(DateTime? LastRunTime);
+public record ManualDataTransferRequest(DateTime? LastRunTime, string? Language);
 
 public class DataTransferFunction
 {
@@ -33,10 +33,10 @@ public class DataTransferFunction
         var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
         var request = string.IsNullOrWhiteSpace(requestBody)
             ? JsonSerializer.Deserialize<ManualDataTransferRequest>(requestBody, _jsonSerializerOptions)!
-            : new ManualDataTransferRequest(default);
+            : new ManualDataTransferRequest(null, null);
 
-        var products = await _occtooApiService.FetchAllItems<ProductDto>(DataType.Product, request.LastRunTime);
-        var categories = await _occtooApiService.FetchAllItems<ProductDto>(DataType.Category, request.LastRunTime);
+        var products = await _occtooApiService.FetchAllItems<ProductDto>(DataType.Product, request.LastRunTime ?? default, request.Language ?? "en");
+        var categories = await _occtooApiService.FetchAllItems<CategoryDto>(DataType.Category, request.LastRunTime ?? default, request.Language ?? "en");
 
         _lastRunTime = DateTime.UtcNow;
         var response = req.CreateResponse(HttpStatusCode.OK);
@@ -46,8 +46,13 @@ public class DataTransferFunction
     [Function("PeriodicDataTransfer")]
     public async Task PeriodicDataTransfer([TimerTrigger("0 */1 * * * *")] TimerInfo myTimer)
     {
-        var products = await _occtooApiService.FetchAllItems<ProductDto>(DataType.Product, _lastRunTime);
-        var categories = await _occtooApiService.FetchAllItems<ProductDto>(DataType.Category, _lastRunTime);
+        var allProducts = new List<ProductDto>();
+        var allCategories = new List<CategoryDto>();
+        foreach (var language in _commercetoolsSettings.Languages)
+        {
+            allProducts.AddRange(await _occtooApiService.FetchAllItems<ProductDto>(DataType.Product, _lastRunTime, language));
+            allCategories.AddRange(await _occtooApiService.FetchAllItems<CategoryDto>(DataType.Category, _lastRunTime, language));
+        }
 
         _lastRunTime = DateTime.UtcNow;
     }

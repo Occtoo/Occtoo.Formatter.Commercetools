@@ -19,7 +19,7 @@ public record DestinationSettings
 
 public record CommercetoolsSettings
 {
-    public string[] Languages { get; init; } = Array.Empty<string>();
+    public ImmutableList<string> Languages { get; init; } = ImmutableList<string>.Empty;
     public string ImportContainerKey { get; init; } = string.Empty;
     public string? MasterVariantProperty { get; init; }
 }
