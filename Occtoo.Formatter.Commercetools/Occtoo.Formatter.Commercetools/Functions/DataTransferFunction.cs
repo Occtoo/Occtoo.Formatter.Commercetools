@@ -1,10 +1,10 @@
 using Microsoft.Azure.Functions.Worker;
 using Microsoft.Azure.Functions.Worker.Http;
-using Microsoft.Extensions.Logging;
 using Occtoo.Formatter.Commercetools.Models;
 using Occtoo.Formatter.Commercetools.Services;
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 
 namespace Occtoo.Formatter.Commercetools.Functions;
 
@@ -13,6 +13,7 @@ public record ManualDataTransferRequest(DateTime? LastRunTime);
 public class DataTransferFunction
 {
     private readonly IOcctooApiService _occtooApiService;
+    private readonly CommercetoolsSettings _commercetoolsSettings;
     private readonly JsonSerializerOptions _jsonSerializerOptions = new()
     {
         PropertyNameCaseInsensitive = true
@@ -20,9 +21,10 @@ public class DataTransferFunction
 
     private static DateTime _lastRunTime;
 
-    public DataTransferFunction(IOcctooApiService occtooApiService)
+    public DataTransferFunction(IOcctooApiService occtooApiService, IOptions<CommercetoolsSettings> commercetoolsSettings)
     {
         _occtooApiService = occtooApiService;
+        _commercetoolsSettings = commercetoolsSettings.Value;
     }
 
     [Function("ManualDataTransfer")]

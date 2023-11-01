@@ -2,12 +2,7 @@
 
 namespace Occtoo.Formatter.Commercetools.Models;
 
-public record DestinationResponseModel<T>
-{
-    public string Language { get; init; }
-
-    public ImmutableList<T> Results { get; init; } = ImmutableList<T>.Empty;
-}
+public record DestinationResponseModel<T>(string Language, ImmutableList<T> Results);
 
 /// <summary>
 /// Parameter inside of DestinationRootDto should correspond of key that Destination will be ordered by in sortAsc query parameter

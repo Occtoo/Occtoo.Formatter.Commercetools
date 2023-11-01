@@ -10,6 +10,7 @@ var host = new HostBuilder()
     {
         sc.Configure<ApiClientCredentials>(builder.Configuration.GetSection(nameof(ApiClientCredentials)));
         sc.Configure<DestinationSettings>(builder.Configuration.GetSection(nameof(DestinationSettings)));
+        sc.Configure<CommercetoolsSettings>(builder.Configuration.GetSection(nameof(CommercetoolsSettings)));
 
         sc.AddHttpClient<IOcctooApiService, OcctooApiService>();
         sc.UseCommercetoolsImportApi(builder.Configuration, "CommercetoolsImportClient");
