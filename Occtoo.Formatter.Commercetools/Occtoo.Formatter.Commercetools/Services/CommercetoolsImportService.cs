@@ -6,7 +6,6 @@ using commercetools.Sdk.ImportApi.Models.Importrequests;
 using commercetools.Sdk.ImportApi.Models.Products;
 using commercetools.Sdk.ImportApi.Models.Productvariants;
 using Microsoft.Extensions.Logging;
-using Occtoo.Formatter.Commercetools.Extensions;
 using ImportApi = commercetools.Sdk.ImportApi.Client.ProjectApiRoot;
 
 namespace Occtoo.Formatter.Commercetools.Services;
@@ -63,17 +62,21 @@ public class CommercetoolsImportService : ICommercetoolsImportService
     {
         try
         {
-            var importTasks = categoryImports.CreateBatches(20)
-                .Select(importBatch => _importApi
+            var importTasks = categoryImports
+                .Select((item, index) => new { Item = item, Index = index })
+                .GroupBy(x => x.Index / 20)
+                .Select(group => new CategoryImportRequest
+                {
+                    Resources = group.Select(x => x.Item).ToList(),
+                    Type = IImportResourceType.Category
+                })
+                .Select(importRequest => _importApi
                     .Categories()
                     .ImportContainers()
                     .WithImportContainerKeyValue(container.Key)
-                    .Post(new CategoryImportRequest
-                    {
-                        Resources = importBatch.Batch.ToList(),
-                        Type = IImportResourceType.Category
-                    })
-                    .ExecuteAsync(cancellationToken));
+                    .Post(importRequest)
+                    .ExecuteAsync(cancellationToken))
+                .ToList();
 
             await Task.WhenAll(importTasks);
         }
@@ -90,17 +93,21 @@ public class CommercetoolsImportService : ICommercetoolsImportService
     {
         try
         {
-            var importTasks = productImports.CreateBatches(20)
-                .Select(importBatch => _importApi
+            var importTasks = productImports
+                .Select((item, index) => new { Item = item, Index = index })
+                .GroupBy(x => x.Index / 20)
+                .Select(group => new ProductImportRequest
+                {
+                    Resources = group.Select(x => x.Item).ToList(),
+                    Type = IImportResourceType.Product
+                })
+                .Select(importRequest => _importApi
                     .Products()
                     .ImportContainers()
                     .WithImportContainerKeyValue(container.Key)
-                    .Post(new ProductImportRequest
-                    {
-                        Resources = importBatch.Batch.ToList(),
-                        Type = IImportResourceType.Product
-                    })
-                    .ExecuteAsync(cancellationToken));
+                    .Post(importRequest)
+                    .ExecuteAsync(cancellationToken))
+                .ToList();
 
             await Task.WhenAll(importTasks);
         }
@@ -118,17 +125,21 @@ public class CommercetoolsImportService : ICommercetoolsImportService
     {
         try
         {
-            var importTasks = productVariantImports.CreateBatches(20)
-                .Select(importBatch => _importApi
+            var importTasks = productVariantImports
+                .Select((item, index) => new { Item = item, Index = index })
+                .GroupBy(x => x.Index / 20)
+                .Select(group => new ProductVariantImportRequest
+                {
+                    Resources = group.Select(x => x.Item).ToList(),
+                    Type = IImportResourceType.ProductVariant
+                })
+                .Select(importRequest => _importApi
                     .ProductVariants()
                     .ImportContainers()
                     .WithImportContainerKeyValue(container.Key)
-                    .Post(new ProductVariantImportRequest
-                    {
-                        Resources = importBatch.Batch.ToList(),
-                        Type = IImportResourceType.ProductVariant
-                    })
-                    .ExecuteAsync(cancellationToken));
+                    .Post(importRequest)
+                    .ExecuteAsync(cancellationToken))
+                .ToList();
 
             await Task.WhenAll(importTasks);
         }

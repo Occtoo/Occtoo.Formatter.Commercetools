@@ -32,8 +32,11 @@ public record ImportCategoriesCommandHandler : IRequestHandler<ImportCategoriesC
         {
             var categoryImports = CreateCategoryImports(request.Categories);
 
-            var importCategoriesBatches =
-                categoryImports.CreateBatches(_commercetoolsSettings.ImportContainerEntriesLimit);
+            var importCategoriesBatches = categoryImports
+                .Select((item, index) => new { Item = item, Index = index })
+                .GroupBy(x => x.Index / _commercetoolsSettings.ImportContainerEntriesLimit)
+                .Select((group, index) => (Index: index, Batch: group.Select(x => x.Item).ToList()))
+                .ToList();
 
             foreach (var (index, categoryImportBatch) in importCategoriesBatches)
             {

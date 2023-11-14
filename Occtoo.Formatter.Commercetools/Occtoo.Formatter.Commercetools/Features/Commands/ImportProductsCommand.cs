@@ -32,7 +32,11 @@ public class ImportProductsCommandHandler : IRequestHandler<ImportProductsComman
         {
             var importProducts = CreateProductImports(request.ProductVariants);
 
-            var importProductsBatches = importProducts.CreateBatches(_commercetoolsSettings.ImportContainerEntriesLimit);
+            var importProductsBatches = importProducts
+                .Select((item, index) => new { Item = item, Index = index })
+                .GroupBy(x => x.Index / _commercetoolsSettings.ImportContainerEntriesLimit)
+                .Select((group, index) => (Index: index, Batch: group.Select(x => x.Item).ToList()))
+                .ToList();
 
             foreach (var (index, productImportBatch) in importProductsBatches)
             {

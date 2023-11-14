@@ -31,7 +31,11 @@ public record ImportProductVariantsCommandHandler : IRequestHandler<ImportProduc
         try
         {
             var productVariantImports = CreateProductVariantImports(request.ProductVariants);
-            var importProductVariantBatches = productVariantImports.CreateBatches(_commercetoolsSettings.ImportContainerEntriesLimit);
+            var importProductVariantBatches = productVariantImports
+                .Select((item, index) => new { Item = item, Index = index })
+                .GroupBy(x => x.Index / _commercetoolsSettings.ImportContainerEntriesLimit)
+                .Select((group, index) => (Index: index, Batch: group.Select(x => x.Item).ToList()))
+                .ToList();
 
             foreach (var (index, importProductVariants) in importProductVariantBatches)
             {
