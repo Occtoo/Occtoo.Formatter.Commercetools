@@ -1,21 +1,15 @@
-﻿using Microsoft.Extensions.Options;
+﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using Occtoo.Formatter.Commercetools.Models;
 using System.Net.Http.Headers;
-using System.Net.Http.Json;
 using System.Text;
 using System.Text.Json;
 
 namespace Occtoo.Formatter.Commercetools.Services;
 
-public enum DataType
-{
-    Product,
-    Category
-}
-
 public interface IOcctooApiService
 {
-    Task<IReadOnlyList<T>> FetchAllItems<T>(DataType dataType, DateTime? lastRunTime, string language = "en") where T : DestinationRootDto;
+    Task<DestinationResponse<T>> GetDataBatch<T>(string url, DateTime lastRunTime, string language, string lastIdPrevBatch);
 }
 
 public class OcctooApiService : IOcctooApiService
@@ -23,16 +17,19 @@ public class OcctooApiService : IOcctooApiService
     private readonly ApiClientCredentials _applicationCredentials;
     private readonly DestinationSettings _destinationSettings;
     private readonly HttpClient _httpClient;
+    private readonly ILogger<OcctooApiService> _logger;
     private DateTime? _accessTokenExpiration;
 
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new () { PropertyNameCaseInsensitive = true };
+    private readonly JsonSerializerOptions _jsonSerializerOptions = new() { PropertyNameCaseInsensitive = true };
 
     public OcctooApiService(IOptions<ApiClientCredentials> applicationCredentials,
-        IOptions<DestinationSettings> destinationSettings, 
+        IOptions<DestinationSettings> destinationSettings,
+        ILogger<OcctooApiService> logger,
         HttpClient httpClient)
     {
         _applicationCredentials = applicationCredentials.Value;
         _destinationSettings = destinationSettings.Value;
+        _logger = logger;
         _httpClient = httpClient;
     }
 
@@ -42,7 +39,7 @@ public class OcctooApiService : IOcctooApiService
         {
             var content = new StringContent(
                 JsonSerializer.Serialize(
-                    new Dictionary<string, string> 
+                    new Dictionary<string, string>
                     {
                         {"clientId", _applicationCredentials.ClientId},
                         {"clientSecret", _applicationCredentials.ClientSecret }
@@ -57,44 +54,31 @@ public class OcctooApiService : IOcctooApiService
         }
     }
 
-    public async Task<IReadOnlyList<T>> FetchAllItems<T>(DataType dataType, DateTime? lastRunTime, string language = "en") where T : DestinationRootDto
+    public async Task<DestinationResponse<T>> GetDataBatch<T>(string url, DateTime lastRunTime, string language, string lastIdPrevBatch = "")
     {
-        await SetToken();
-
-        var allItems = new List<T>();
-        var baseQueryString = $"?top={_destinationSettings.BatchSize}&sortAsc=id&language={language}&periodSince={lastRunTime ?? default:o}";
-        var lastIdPrevBatch = string.Empty;
-
-        while (true)
+        try
         {
-            var queryStringBuilder = new StringBuilder(baseQueryString);
+            await SetToken();
 
-            if (!string.IsNullOrWhiteSpace(lastIdPrevBatch))
-            {
-                queryStringBuilder.Append($"&after={lastIdPrevBatch}");
-            }
+            var data = new DestinationResponse<T>(language, new List<T>());
 
-            var response = await _httpClient.GetFromJsonAsync<DestinationResponseModel<T>>($"{GetBaseUrl(dataType)}{queryStringBuilder}", _jsonSerializerOptions);
+            var response =
+                await _httpClient.GetAsync(
+                    $"{url}{GetQueryString(lastRunTime, language, lastIdPrevBatch)}");
 
-            if (response?.Results != null && response.Results.Any())
-            {
-                allItems.AddRange(response.Results);
-                lastIdPrevBatch = response.Results[^1].Id;
-            }
-            else
-            {
-                break;
-            }
+            response.EnsureSuccessStatusCode();
+
+            var stringResult = await response.Content.ReadAsStringAsync();
+            return JsonSerializer.Deserialize<DestinationResponse<T>>(stringResult, _jsonSerializerOptions);
         }
-
-        return allItems.AsReadOnly();
+        catch (Exception ex)
+        {
+            _logger.LogError("An exception occurred during connection to occtoo api service {error}", ex.Message);
+            return new DestinationResponse<T>(language, new List<T>());
+        }
     }
 
-    private string GetBaseUrl(DataType dataType)
-        => dataType switch
-        {
-            DataType.Product => _destinationSettings.ProductUrl,
-            DataType.Category => _destinationSettings.CategoriesUrl,
-            _ => throw new ArgumentOutOfRangeException(nameof(dataType), dataType, null)
-        };
+    private string GetQueryString(DateTime lastRunTime, string language, string lastIdPrevBatch) =>
+        $"?top={_destinationSettings.BatchSize}&sortAsc=id&language={language}&periodSince={lastRunTime:o}" +
+        $"{(string.IsNullOrWhiteSpace(lastIdPrevBatch) ? string.Empty : $"&after={lastIdPrevBatch}")}";
 }

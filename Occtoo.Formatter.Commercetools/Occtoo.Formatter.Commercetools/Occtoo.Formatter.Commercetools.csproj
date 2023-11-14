@@ -7,12 +7,17 @@
     <Nullable>enable</Nullable>
   </PropertyGroup>
   <ItemGroup>
+    <PackageReference Include="Azure.Data.Tables" Version="12.8.1" />
     <PackageReference Include="commercetools.Base.Abstractions" Version="11.1.0" />
     <PackageReference Include="commercetools.Base.Client" Version="11.1.0" />
     <PackageReference Include="commercetools.Base.Registration" Version="11.1.0" />
     <PackageReference Include="commercetools.Base.Serialization" Version="11.1.0" />
     <PackageReference Include="commercetools.Sdk.Api" Version="11.1.0" />
     <PackageReference Include="commercetools.Sdk.ImportApi" Version="11.1.0" />
+    <PackageReference Include="FluentValidation" Version="11.8.0" />
+    <PackageReference Include="FluentValidation.AspNetCore" Version="11.3.0" />
+    <PackageReference Include="FluentValidation.DependencyInjectionExtensions" Version="11.8.0" />
+    <PackageReference Include="MediatR" Version="12.1.1" />
     <PackageReference Include="Microsoft.AspNet.WebApi.Client" Version="6.0.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker" Version="1.19.0" />
     <PackageReference Include="Microsoft.Azure.Functions.Worker.Extensions.Http" Version="3.0.13" />
