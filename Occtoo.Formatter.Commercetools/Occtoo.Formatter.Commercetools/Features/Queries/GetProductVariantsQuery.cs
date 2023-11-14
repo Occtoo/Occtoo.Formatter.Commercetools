@@ -125,14 +125,6 @@ public class GetProductVariantsQueryHandler : IRequestHandler<GetProductVariants
         };
     }
 
-    private static IEnumerable<ProductVariantDto> EnsureMasterVariantExists(IEnumerable<ProductVariantDto> productVariants)
-    {
-        return productVariants
-            .GroupBy(v => v.ProductId)
-            .Select(EnsureMasterVariant)
-            .SelectMany(v => v);
-    }
-
     private static IEnumerable<ProductVariantDto> EnsureMasterVariant(IEnumerable<ProductVariantDto> variantsForGivenProductId)
     {
         var variantList = variantsForGivenProductId.ToList();
