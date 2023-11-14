@@ -1,59 +1,68 @@
+using MediatR;
 using Microsoft.Azure.Functions.Worker;
-using Microsoft.Azure.Functions.Worker.Http;
+using Microsoft.Extensions.Logging;
+using Occtoo.Formatter.Commercetools.Features.Commands;
+using Occtoo.Formatter.Commercetools.Features.Queries;
 using Occtoo.Formatter.Commercetools.Models;
 using Occtoo.Formatter.Commercetools.Services;
-using System.Net;
-using System.Text.Json;
-using Microsoft.Extensions.Options;
 
 namespace Occtoo.Formatter.Commercetools.Functions;
 
-public record ManualDataTransferRequest(DateTime? LastRunTime, string? Language);
-
 public class DataTransferFunction
 {
-    private readonly IOcctooApiService _occtooApiService;
-    private readonly CommercetoolsSettings _commercetoolsSettings;
-    private readonly JsonSerializerOptions _jsonSerializerOptions = new()
+    private readonly IMediator _mediator;
+    private readonly ILogger<DataTransferFunction> _logger;
+    private readonly IAzureTableService _azureTableService;
+
+    public DataTransferFunction(IMediator mediator,
+        IAzureTableService azureTableService,
+        ILogger<DataTransferFunction> logger)
     {
-        PropertyNameCaseInsensitive = true
-    };
-
-    private static DateTime _lastRunTime;
-
-    public DataTransferFunction(IOcctooApiService occtooApiService, IOptions<CommercetoolsSettings> commercetoolsSettings)
-    {
-        _occtooApiService = occtooApiService;
-        _commercetoolsSettings = commercetoolsSettings.Value;
-    }
-
-    [Function("ManualDataTransfer")]
-    public async Task<HttpResponseData> ManualDataTransfer([HttpTrigger(AuthorizationLevel.Anonymous, "post", Route = "transfer")] HttpRequestData req)
-    {
-        var requestBody = await new StreamReader(req.Body).ReadToEndAsync();
-        var request = string.IsNullOrWhiteSpace(requestBody)
-            ? JsonSerializer.Deserialize<ManualDataTransferRequest>(requestBody, _jsonSerializerOptions)!
-            : new ManualDataTransferRequest(null, null);
-
-        var products = await _occtooApiService.FetchAllItems<ProductDto>(DataType.Product, request.LastRunTime ?? default, request.Language ?? "en");
-        var categories = await _occtooApiService.FetchAllItems<CategoryDto>(DataType.Category, request.LastRunTime ?? default, request.Language ?? "en");
-
-        _lastRunTime = DateTime.UtcNow;
-        var response = req.CreateResponse(HttpStatusCode.OK);
-        return response;
+        _mediator = mediator;
+        _logger = logger;
+        _azureTableService = azureTableService;
     }
 
     [Function("PeriodicDataTransfer")]
-    public async Task PeriodicDataTransfer([TimerTrigger("0 */1 * * * *")] TimerInfo myTimer)
+    public async Task PeriodicDataTransfer([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, CancellationToken cancellationToken)
     {
-        var allProducts = new List<ProductDto>();
-        var allCategories = new List<CategoryDto>();
-        foreach (var language in _commercetoolsSettings.Languages)
+        // Get configuration
+        var commercetoolsConfigurationEntity = await _azureTableService.GetCommercetoolsConfigurationAsync();
+        var configuration = commercetoolsConfigurationEntity == null
+            ? new CommercetoolsConfigurationDto(default)
+            : new CommercetoolsConfigurationDto(commercetoolsConfigurationEntity.LastRunTime);
+
+        var categories = await _mediator.Send(new GetCategoriesQuery(configuration.LastRunTime), cancellationToken);
+        if (categories.Any())
         {
-            allProducts.AddRange(await _occtooApiService.FetchAllItems<ProductDto>(DataType.Product, _lastRunTime, language));
-            allCategories.AddRange(await _occtooApiService.FetchAllItems<CategoryDto>(DataType.Category, _lastRunTime, language));
+            var importCategoriesResult = await _mediator.Send(new ImportCategoriesCommand(categories), cancellationToken);
+            if (!importCategoriesResult.IsSuccess)
+            {
+                _logger.LogError("Categories were not imported successfully");
+                return;
+            }
         }
 
-        _lastRunTime = DateTime.UtcNow;
+        var productVariants = await _mediator.Send(new GetProductVariantsQuery(configuration.LastRunTime), cancellationToken);
+
+        if (productVariants.Any())
+        {
+            var importProductsResult = await _mediator.Send(new ImportProductsCommand(productVariants), cancellationToken);
+            if (!importProductsResult.IsSuccess)
+            {
+                _logger.LogError("Products were not imported successfully");
+                return;
+            }
+
+            var importProductVariantsResult = await _mediator.Send(new ImportProductVariantsCommand(productVariants), cancellationToken);
+            if (!importProductVariantsResult.IsSuccess)
+            {
+                _logger.LogError("ProductVariants were not imported successfully");
+                return;
+            }
+
+        }
+
+        await _azureTableService.UpdateCommercetoolsConfigurationAsync(configuration with { LastRunTime = DateTime.UtcNow });
     }
 }

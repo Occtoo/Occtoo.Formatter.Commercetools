@@ -1,6 +1,4 @@
-﻿using System.Collections.Immutable;
-
-namespace Occtoo.Formatter.Commercetools.Models;
+﻿namespace Occtoo.Formatter.Commercetools.Models;
 
 public record ApiClientCredentials
 {
@@ -19,7 +17,25 @@ public record DestinationSettings
 
 public record CommercetoolsSettings
 {
-    public ImmutableList<string> Languages { get; init; } = ImmutableList<string>.Empty;
-    public string ImportContainerKey { get; init; } = string.Empty;
-    public string? MasterVariantProperty { get; init; }
+    public int ImportContainerEntriesLimit { get; init; } = 200000;
+    public string ProductTypeName { get; init; } = string.Empty;
+    public bool PublishProducts { get; init; }
+    public bool PublishProductVariants { get; init; }
+    public Dictionary<string, AttributeType> AttributeDictionary { get; init; } = new();
+    public List<string> Languages { get; init; } = new();
+}
+
+public enum AttributeType
+{
+    Boolean,
+    Text,
+    LocalizedText,
+    Number,
+    DateTime,
+    Date,
+    Time,
+    //Reference -> Not Supported
+    //Money -> Not Supported
+    EnumList,
+    LocalizedList
 }
