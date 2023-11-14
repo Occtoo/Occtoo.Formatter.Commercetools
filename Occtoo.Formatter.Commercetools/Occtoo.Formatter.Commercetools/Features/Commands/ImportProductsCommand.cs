@@ -3,7 +3,6 @@ using commercetools.Sdk.ImportApi.Models.Products;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Occtoo.Formatter.Commercetools.Extensions;
 using Occtoo.Formatter.Commercetools.Models;
 using Occtoo.Formatter.Commercetools.Services;
 
@@ -31,7 +30,6 @@ public class ImportProductsCommandHandler : IRequestHandler<ImportProductsComman
         try
         {
             var importProducts = CreateProductImports(request.ProductVariants);
-
             var importProductsBatches = importProducts
                 .Select((item, index) => new { Item = item, Index = index })
                 .GroupBy(x => x.Index / _commercetoolsSettings.ImportContainerEntriesLimit)

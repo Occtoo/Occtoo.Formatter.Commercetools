@@ -4,7 +4,6 @@ using commercetools.Sdk.ImportApi.Models.Productvariants;
 using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using Occtoo.Formatter.Commercetools.Extensions;
 using Occtoo.Formatter.Commercetools.Models;
 using Occtoo.Formatter.Commercetools.Services;
 

@@ -1,10 +1,9 @@
-﻿using System.Collections.Immutable;
-using System.Text.Json;
-using MediatR;
+﻿using MediatR;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Occtoo.Formatter.Commercetools.Models;
 using Occtoo.Formatter.Commercetools.Services;
+using System.Collections.Immutable;
 
 namespace Occtoo.Formatter.Commercetools.Features.Queries;
 

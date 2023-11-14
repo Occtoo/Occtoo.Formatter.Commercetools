@@ -63,6 +63,6 @@ public class DataTransferFunction
 
         }
 
-        //await _azureTableService.UpdateCommercetoolsConfigurationAsync(configuration with { LastRunTime = DateTime.UtcNow });
+        await _azureTableService.UpdateCommercetoolsConfigurationAsync(configuration with { LastRunTime = DateTime.UtcNow });
     }
 }
