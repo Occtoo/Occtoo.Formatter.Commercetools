@@ -8,25 +8,26 @@ using Occtoo.Formatter.Commercetools.Services;
 
 namespace Occtoo.Formatter.Commercetools.Functions;
 
-public class DataTransferFunction
+public class PeriodicDataTransfer
 {
     private readonly IMediator _mediator;
-    private readonly ILogger<DataTransferFunction> _logger;
+    private readonly ILogger<PeriodicDataTransfer> _logger;
     private readonly IAzureTableService _azureTableService;
 
-    public DataTransferFunction(IMediator mediator,
+    private const string OnceEveryHour = "0 0 */1 * * *";
+
+    public PeriodicDataTransfer(IMediator mediator,
         IAzureTableService azureTableService,
-        ILogger<DataTransferFunction> logger)
+        ILogger<PeriodicDataTransfer> logger)
     {
         _mediator = mediator;
         _logger = logger;
         _azureTableService = azureTableService;
     }
 
-    [Function("PeriodicDataTransfer")]
-    public async Task PeriodicDataTransfer([TimerTrigger("0 */5 * * * *")] TimerInfo myTimer, CancellationToken cancellationToken)
+    [Function(nameof(PeriodicDataTransferFunction))]
+    public async Task PeriodicDataTransferFunction([TimerTrigger(OnceEveryHour)] TimerInfo myTimer, CancellationToken cancellationToken)
     {
-        // Get configuration
         var commercetoolsConfigurationEntity = await _azureTableService.GetCommercetoolsConfigurationAsync();
         var configuration = commercetoolsConfigurationEntity == null
             ? new CommercetoolsConfigurationDto(default)
