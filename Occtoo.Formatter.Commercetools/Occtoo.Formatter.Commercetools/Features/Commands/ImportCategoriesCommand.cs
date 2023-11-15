@@ -83,7 +83,8 @@ public record ImportCategoriesCommandHandler : IRequestHandler<ImportCategoriesC
             MetaDescription = new LocalizedString(),
             MetaKeywords = new LocalizedString(),
             Parent = string.IsNullOrWhiteSpace(category.Parent) ? null : new CategoryKeyReference { Key = category.Parent, TypeId = IReferenceType.Category},
-            OrderHint = category.OrderHint
+            OrderHint = category.OrderHint,
+            ExternalId = category.ExternalId
         };
 
     private static CategoryImport FillOutLocalizedData(IEnumerable<CategoryDto> categories, CategoryImport categoryImport)
