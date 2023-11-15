@@ -28,7 +28,6 @@ var host = new HostBuilder()
 
         sc.AddHttpClient<IOcctooApiService, OcctooApiService>();
         sc.UseCommercetoolsImportApi(builder.Configuration, "CommercetoolsImportClient");
-        sc.UseCommercetoolsApi(builder.Configuration, "CommercetoolsApiClient");
 
         sc.AddSingleton<ICommercetoolsImportService, CommercetoolsImportService>();
     })

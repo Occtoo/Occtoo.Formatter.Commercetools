@@ -34,8 +34,6 @@ public enum AttributeType
     DateTime,
     Date,
     Time,
-    //Reference -> Not Supported
-    //Money -> Not Supported
     EnumList,
     LocalizedList
 }

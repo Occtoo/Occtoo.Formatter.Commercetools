@@ -3,20 +3,40 @@
   "Values": {
     "AzureWebJobsStorage": "UseDevelopmentStorage=true",
     "FUNCTIONS_WORKER_RUNTIME": "dotnet-isolated",
-    "ApiClientCredentials__ClientId": "DestinationApplicationClientId",
-    "ApiClientCredentials__ClientSecret": "DestinationApplicationClientSecret",
-    "ApiClientCredentials__TokenAuthUrl": "DestinationTokenAuthUrl",
-    "DestinationSettings__ProductUrl": "https://global.occtoo.com/occtoodemo/commercetools/v4/product",
-    "DestinationSettings__CategoriesUrl": "https://global.occtoo.com/occtoodemo/commercetools/v4/category",
+    "ApiClientCredentials__ClientId": "Destination Application ClientId",
+    "ApiClientCredentials__ClientSecret": "Destination Application Secret",
+    "ApiClientCredentials__TokenAuthUrl": "https://destinations.occtoo.com/destinations/{DestinationGuid}/token",
+    "DestinationSettings__ProductUrl": "Url to product endpoint",
+    "DestinationSettings__CategoriesUrl": "Url to category endpoint",
     "DestinationSettings__BatchSize": 500,
-    "CommercetoolsImportClient__ClientId": "CommercetoolsImportClientId",
-    "CommercetoolsImportClient__ClientSecret": "CommercetoolsImportClientSecret",
-    "CommercetoolsImportClient__AuthorizationBaseAddress": "https://auth.europe-west1.gcp.commercetools.com/",
-    "CommercetoolsImportClient__Scope": "CommercetoolsScopes",
-    "CommercetoolsImportClient__ProjectKey": "CommercetoolsProjectKey",
-    "CommercetoolsImportClient__ApiBaseAddress": "https://api.europe-west1.gcp.commercetools.com/",
-    "CommercetoolsSettings__ImportContainerKey": "occtoo-container",
-    "CommercetoolsSettings__Languages__[0]": "en",
-    "CommercetoolsSettings__Languages__[1]": "sv"
+    "CommercetoolsImportClient__ClientId": "Commercetools import client Id",
+    "CommercetoolsImportClient__ClientSecret": "Commercetools import client Secret",
+    "CommercetoolsImportClient__AuthorizationBaseAddress": "https://auth.europe-west1.gcp.commercetools.com/", // requires changing if environment is outside of west europe
+    "CommercetoolsImportClient__Scope": "Scopes returned during commercetools client setup",
+    "CommercetoolsImportClient__ProjectKey": "Project key inside of commercetools",
+    "CommercetoolsImportClient__ApiBaseAddress": "https://import.europe-west1.gcp.commercetools.com/", // Requires changing if environment is outside of west europe
+    "CommercetoolsSettings__ProductTypeName": "Product type inside of commercetools environment",
+    "CommercetoolsSettings__PublishProducts": true, // This setting will be used if products endpoint doesn't return "publishProducts" variable
+    "CommercetoolsSettings__PublishProductVariants": true, // This setting will be used if products endpoint doesn't return "publishVariant" variable
+    "CommercetoolsSettings__Languages__[0]": "en", // example of languages list setup. These should be configured languages inside of commercetools application
+    "CommercetoolsSettings__Languages__[1]": "sv",
+    // Example of custom attributes setup. 
+    // 1st part is the attribute name as it is specified inside of commercetools
+    // 2nd part is attribute type that corresponds to the attribute type from commercetools
+    // Available attribute types are:
+    // Boolean,
+    // Text,
+    // LocalizedText,
+    // Number,
+    // DateTime,
+    // Date,
+    // Time,
+    // EnumList,
+    // LocalizedList
+    "CommercetoolsSettings__AttributeDictionary__WashingTemperature": "Number",
+    "CommercetoolsSettings__AttributeDictionary__SomeLocalizedField": "LocalizedText",
+    "CommercetoolsSettings__AttributeDictionary__LastWashed": "DateTime",
+    "CommercetoolsSettings__AttributeDictionary__IsWashable": "Boolean",
+    "CommercetoolsSettings__AttributeDictionary__OriginalColor": "EnumList"
   }
 }
