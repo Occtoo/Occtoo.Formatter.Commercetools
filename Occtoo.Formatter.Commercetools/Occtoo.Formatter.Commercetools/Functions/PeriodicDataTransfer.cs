@@ -14,7 +14,7 @@ public class PeriodicDataTransfer
     private readonly ILogger<PeriodicDataTransfer> _logger;
     private readonly IAzureTableService _azureTableService;
 
-    private const string OnceEveryHour = "0 0 */1 * * *";
+    private const string OnceEveryHour = "0 */5 * * * *";
 
     public PeriodicDataTransfer(IMediator mediator,
         IAzureTableService azureTableService,
@@ -65,5 +65,10 @@ public class PeriodicDataTransfer
         }
 
         await _azureTableService.UpdateCommercetoolsConfigurationAsync(configuration with { LastRunTime = DateTime.UtcNow });
+        _logger.Log(LogLevel.Information,
+            "Synchronization performed successfully. Updated {categoriesCount} categories {productsCount} products and {productVariantsCount} ProductVariants", 
+            categories.Count,
+            productVariants.GroupBy(x => x.ProductId).Count(),
+            productVariants.Count);
     }
 }

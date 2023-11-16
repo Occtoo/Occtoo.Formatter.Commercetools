@@ -93,8 +93,12 @@ public record ImportCategoriesCommandHandler : IRequestHandler<ImportCategoriesC
         {
             categoryImport.Name[category.Language] = category.Name;
             categoryImport.Slug[category.Language] = category.Slug;
-            categoryImport.Description[category.Language] = category.Description;
-                    
+
+            if (!string.IsNullOrWhiteSpace(category.Description))
+            {
+                categoryImport.Description[category.Language] = category.Description;
+            }
+
             if (!string.IsNullOrWhiteSpace(category.MetaTitle))
             {
                 categoryImport.MetaTitle[category.Language] = category.MetaTitle;

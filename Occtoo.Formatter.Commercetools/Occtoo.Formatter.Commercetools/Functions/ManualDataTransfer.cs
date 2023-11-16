@@ -73,7 +73,9 @@ public class ManualDataTransfer
 
             await _azureTableService.UpdateCommercetoolsConfigurationAsync(new CommercetoolsConfigurationDto(DateTime.UtcNow));
 
-            return req.CreateResponse(HttpStatusCode.OK);
+            return await CreateResponse(req, HttpStatusCode.OK,
+                $"Synchronization performed successfully. \n" +
+                $"Updated {categories.Count} categories {productVariants.GroupBy(x => x.ProductId).Count()} products and {productVariants.Count} ProductVariants");
         }
         catch (Exception ex)
         {
