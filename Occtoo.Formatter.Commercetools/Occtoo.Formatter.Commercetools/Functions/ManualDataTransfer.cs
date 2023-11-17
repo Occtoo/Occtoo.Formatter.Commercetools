@@ -8,6 +8,7 @@ using Occtoo.Formatter.Commercetools.Models;
 using Occtoo.Formatter.Commercetools.Services;
 using System.Net;
 using System.Text.Json;
+using Microsoft.Extensions.Options;
 
 namespace Occtoo.Formatter.Commercetools.Functions;
 
@@ -17,14 +18,17 @@ public class ManualDataTransfer
 {
     private readonly IMediator _mediator;
     private readonly ILogger<ManualDataTransfer> _logger;
+    private readonly CommercetoolsSettings _commercetoolsSettings;
     private readonly IAzureTableService _azureTableService;
 
     public ManualDataTransfer(IMediator mediator,
         IAzureTableService azureTableService,
+        IOptions<CommercetoolsSettings> commercetoolsSettings,
         ILogger<ManualDataTransfer> logger)
     {
         _mediator = mediator;
         _logger = logger;
+        _commercetoolsSettings = commercetoolsSettings.Value;
         _azureTableService = azureTableService;
     }
 
@@ -73,9 +77,13 @@ public class ManualDataTransfer
 
             await _azureTableService.UpdateCommercetoolsConfigurationAsync(new CommercetoolsConfigurationDto(DateTime.UtcNow));
 
+            var updatedCategoriesCount = categories.Count / _commercetoolsSettings.Languages.Count;
+            var updatedProductsCount = productVariants.GroupBy(x => x.ProductId).Count() / _commercetoolsSettings.Languages.Count;
+            var updatedProductVariants = productVariants.Count / _commercetoolsSettings.Languages.Count;
+
             return await CreateResponse(req, HttpStatusCode.OK,
                 $"Synchronization performed successfully. \n" +
-                $"Updated {categories.Count} categories {productVariants.GroupBy(x => x.ProductId).Count()} products and {productVariants.Count} ProductVariants");
+                $"Updated {updatedCategoriesCount} categories {updatedProductsCount} products and {updatedProductVariants} ProductVariants");
         }
         catch (Exception ex)
         {

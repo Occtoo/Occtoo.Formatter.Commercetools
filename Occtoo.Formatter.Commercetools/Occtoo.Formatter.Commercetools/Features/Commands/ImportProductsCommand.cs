@@ -92,10 +92,10 @@ public class ImportProductsCommandHandler : IRequestHandler<ImportProductsComman
             MetaKeywords = new LocalizedString(),
             PriceMode = IProductPriceModeEnum.Embedded,
             Publish = productVariant.PublishProduct ?? _commercetoolsSettings.PublishProducts,
-            Categories = productVariant.ProductCategories
+            Categories = productVariant.ProductCategories?
                 .Select(category => new CategoryKeyReference { Key = category, TypeId = IReferenceType.Category })
                 .Cast<ICategoryKeyReference>()
-                .ToList()
+                .ToList() ?? null
         };
     }
 
@@ -107,7 +107,11 @@ public class ImportProductsCommandHandler : IRequestHandler<ImportProductsComman
 
             productImport.Name[language] = product.ProductName;
             productImport.Slug[language] = product.ProductSlug;
-            productImport.Description[language] = product.ProductDescription;
+
+            if (!string.IsNullOrWhiteSpace(product.ProductDescription))
+            {
+                productImport.Description[language] = product.ProductDescription;
+            }
 
             if (!string.IsNullOrWhiteSpace(product.ProductMetaTitle))
             {

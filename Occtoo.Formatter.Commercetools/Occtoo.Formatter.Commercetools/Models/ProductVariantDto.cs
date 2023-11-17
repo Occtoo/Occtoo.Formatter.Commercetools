@@ -8,7 +8,7 @@ public record ProductVariantDto(string Id,
     string ProductName,
     string? ProductType,
     string ProductSlug,
-    string[] ProductCategories,
+    string[]? ProductCategories,
     string? ProductDescription,
     string? ProductMetaDescription,
     string? ProductMetaTitle,
@@ -31,8 +31,6 @@ public class ProductVariantDtoValidator : AbstractValidator<ProductVariantDto>
         RuleFor(x => x.ProductId).NotEmpty();
         RuleFor(x => x.ProductName).NotEmpty();
         RuleFor(x => x.ProductSlug).NotEmpty();
-        RuleFor(x => x.ProductCategories).NotNull()
-            .Must(categories => categories.Length > 0).WithMessage("At least one category is required.");
         RuleFor(x => x.Language).NotEmpty();
 
         When(x => x.Images != null, () =>

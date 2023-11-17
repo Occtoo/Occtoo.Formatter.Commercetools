@@ -111,7 +111,7 @@ public record ImportProductVariantsCommandHandler : IRequestHandler<ImportProduc
             return ParseLocalizedAttribute(productVariants, attributeName);
         }
 
-        if (representativeVariant.AttributesToValues.TryGetValue(attributeName, out var value))
+        if (representativeVariant.AttributesToValues.TryGetValue(attributeName, out var value) && !string.IsNullOrWhiteSpace(value))
         {
             return attributeType switch
             {
@@ -137,7 +137,7 @@ public record ImportProductVariantsCommandHandler : IRequestHandler<ImportProduc
     
         foreach (var variant in productVariants)
         {
-            if (variant.AttributesToValues.TryGetValue(attributeName, out var value))
+            if (variant.AttributesToValues.TryGetValue(attributeName, out var value) && !string.IsNullOrWhiteSpace(value))
             {
                 localizedString[variant.Language] = value;
             }
