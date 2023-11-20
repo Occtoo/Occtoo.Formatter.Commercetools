@@ -35,6 +35,9 @@ public class GetCategoriesQueryHandler : IRequestHandler<GetCategoriesQuery, IRe
     {
         try
         {
+            if (string.IsNullOrWhiteSpace(_destinationSettings.CategoriesUrl))
+                return ImmutableList<CategoryDto>.Empty;
+
             var allCategories = await FetchAllCategories(request.LastRunTime);
 
             if (!_validationService.ValidateAll(allCategories))
