@@ -14,7 +14,7 @@ public class PeriodicDataTransfer
     private readonly ILogger<PeriodicDataTransfer> _logger;
     private readonly IAzureTableService _azureTableService;
 
-    private const string OnceEveryHour = "0 */5 * * * *";
+    private const string OnceEveryHour = "0 0 */1 * * *";
 
     public PeriodicDataTransfer(IMediator mediator,
         IAzureTableService azureTableService,

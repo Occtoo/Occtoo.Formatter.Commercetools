@@ -28,6 +28,7 @@ public class AzureTableService : IAzureTableService
     {
         try
         {
+            var table = await _tableClient.CreateIfNotExistsAsync();
             return await _tableClient.GetEntityAsync<CommercetoolsConfigurationEntity>(PartitionKey, RowKey);
         }
         catch (Exception ex)
