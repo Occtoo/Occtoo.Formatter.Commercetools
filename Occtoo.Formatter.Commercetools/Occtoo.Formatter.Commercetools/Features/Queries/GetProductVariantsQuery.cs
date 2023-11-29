@@ -110,12 +110,6 @@ public class GetProductVariantsQueryHandler : IRequestHandler<GetProductVariants
             {
                 attributesToValues.Add(attributeName, attributeValue.ToString());
             }
-            else
-            {
-                _logger.LogWarning("Possible issue. Property with name: {propertyName} not found on product variant {productVariantId}",
-                    attributeName.LowerCaseFirstLetter(),
-                    productVariant.Id);
-            }
         }
 
         return productVariant with
