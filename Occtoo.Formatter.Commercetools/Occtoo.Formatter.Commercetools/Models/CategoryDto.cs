@@ -1,4 +1,5 @@
 ﻿using FluentValidation;
+using System.Globalization;
 
 namespace Occtoo.Formatter.Commercetools.Models;
 
@@ -22,6 +23,6 @@ public class CategoryDtoValidator : AbstractValidator<CategoryDto>
         RuleFor(cat => cat.Name).NotEmpty();
         RuleFor(cat => cat.Slug).NotEmpty();
         RuleFor(cat => cat.Language).NotEmpty();
-        RuleFor(cat => decimal.Parse(cat.OrderHint)).InclusiveBetween(0m, 1m);
+        RuleFor(cat => decimal.Parse(cat.OrderHint, CultureInfo.InvariantCulture)).InclusiveBetween(0m, 1m);
     }
 }
