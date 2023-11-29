@@ -1,4 +1,5 @@
-﻿using Azure.Data.Tables;
+﻿using Azure;
+using Azure.Data.Tables;
 using Microsoft.Extensions.Logging;
 using Occtoo.Formatter.Commercetools.Models;
 
@@ -21,6 +22,7 @@ public class AzureTableService : IAzureTableService
         ILogger<AzureTableService> logger)
     {
         _tableClient = tableClient;
+        _tableClient.CreateIfNotExists();
         _logger = logger;
     }
 
@@ -28,8 +30,12 @@ public class AzureTableService : IAzureTableService
     {
         try
         {
-            var table = await _tableClient.CreateIfNotExistsAsync();
             return await _tableClient.GetEntityAsync<CommercetoolsConfigurationEntity>(PartitionKey, RowKey);
+        }
+        catch (RequestFailedException ex) when (ex.Status == 404)
+        {
+            _logger.LogWarning("Commercetools configuration entity was not found");
+            return null;
         }
         catch (Exception ex)
         {
