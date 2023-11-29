@@ -131,7 +131,7 @@ public record ImportProductVariantsCommandHandler : IRequestHandler<ImportProduc
     }
 
 
-    private static IAttribute ParseLocalizedAttribute(IEnumerable<ProductVariantDto> productVariants, string attributeName)
+    private static IAttribute? ParseLocalizedAttribute(IEnumerable<ProductVariantDto> productVariants, string attributeName)
     {
         var localizedString = new LocalizedString();
     
@@ -143,8 +143,13 @@ public record ImportProductVariantsCommandHandler : IRequestHandler<ImportProduc
             }
         }
 
+        if(!localizedString.Any())
+        {
+            return null;
+        }
+
         return new LocalizableTextAttribute { Name = attributeName, Value = localizedString };
     }
 
-    private static string GetImportContainerName(int batchIndex) => $"occtoo-product-variants-{batchIndex}";
+    private static string GetImportContainerName(int batchIndex) => $"occtoo-products-{batchIndex}";
 }
